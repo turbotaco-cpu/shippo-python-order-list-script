@@ -1,3 +1,5 @@
+# TODO wrap the requests and online api download into a function
+
 # import requests
 # #temporarily hacked it with max results of 250 for testing purposes.
 # token = "shippo_test_277121c5f998ea6f1c5402ca4644ead68662ee57"
@@ -17,9 +19,12 @@
 import pandas as pd
 import json
 import re
+from typing import List, Dict
 
 # Opening JSON file
 f = open('data.json')
+
+# we split the json off into two depths. TODO document exactly what this means.
 
 # returns JSON object as a dictionary and creates the orders variable
 orders = json.load(f)
@@ -32,31 +37,35 @@ order_list = pd.json_normalize(
 # looping through the dataframe and conditionally checking for an SKU whilst providing error handling
 # The resulting list is added as a new column to the checked data frame
 # Essentially it's manual normalization with conditions
+print(type(order_list))
 
-pd.set_option("display.max.rows", 15)
 
-sku_list = []
-for index, row in order_list.iterrows():
-    if len(row['line_items']) > 0:
-        sku = (row['line_items'][0]['sku'])
-        sku_list.append(sku)
-    else:
-        sku_list.append('Empty')
+def fix_shippo_json(order_list: pd.DataFrame) -> pd.DataFrame:
+    pd.set_option("display.max.rows", 15)
+    sku_list = []
+    for index, row in order_list.iterrows():
+        if len(row['line_items']) > 0:
+            sku = (row['line_items'][0]['sku'])
+            sku_list.append(sku)
+        else:
+            sku_list.append('Empty')
 
-order_list["sku"] = sku_list
+    order_list["sku"] = sku_list
 
-# order_list
+    # converting from string to date-time
+    # doing it twice because there are two different formats involved as SHippo API changed
+    format_string = "%Y-%m-%dT%H:%M:%SZ"
+    date1 = pd.to_datetime(order_list['created_at'], errors='coerce', format='%Y-%m-%dT%H:%M:%S.%fZ')
+    date2 = pd.to_datetime(order_list['created_at'], errors='coerce', format='%Y-%m-%dT%H:%M:%SZ')
+    order_list['created_at'] = date1.fillna(date2)
 
-# converting from string to date-time
-# doing it twice because there are two different formats involved as SHippo API changed
-format_string = "%Y-%m-%dT%H:%M:%SZ"
-date1 = pd.to_datetime(order_list['created_at'], errors='coerce', format='%Y-%m-%dT%H:%M:%S.%fZ')
-date2 = pd.to_datetime(order_list['created_at'], errors='coerce', format='%Y-%m-%dT%H:%M:%SZ')
-order_list['created_at'] = date1.fillna(date2)
+    # converting string to float for prices so they can be searched
+    order_list['subtotal_price'] = order_list['subtotal_price'].astype(float)
+    order_list['total_price'] = order_list['total_price'].astype(float)
+    return order_list
 
-# converting string to float for prices so they can be searched
-order_list['subtotal_price'] = order_list['subtotal_price'].astype(float)
-order_list['total_price'] = order_list['total_price'].astype(float)
+
+fix_shippo_json(order_list)
 
 pd.set_option('display.max_rows', 100)
 date_from = '2021-12-01'
