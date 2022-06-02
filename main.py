@@ -14,34 +14,37 @@
 #     json.dump(orders, f, ensure_ascii=False, indent=4)
 # #dumps json so we don't go to API every time
 
-# load pandas and json modules
-# loads JSON from local file so I don't have to constantly hit the API for the same thing
+# loads JSON from local file to avoid constant API requests
 import pandas as pd
 import json
 import re
-from typing import List, Dict
+from typing import List
+# TODO fix typing as it's being used with Pandas DF and with nothing it doesn't work
 
-# Opening JSON file
-f = open('data.json')
 
-# we split the json off into two depths. TODO document exactly what this means.
+def load_json(file: str) -> pd.DataFrame:
+    f = open(file)
+    # returns JSON object as a dictionary and creates the orders variable
+    orders = json.load(f)
 
-# returns JSON object as a dictionary and creates the orders variable
-orders = json.load(f)
+    # this handles the object info--but not deeper into the tree such as line items
+    order_list = pd.json_normalize(
+        orders['results'],
+    )
 
-# this handles the object info--but not deeper into the tree such as line items
-order_list = pd.json_normalize(
-    orders['results'],
-)
+    print(type(order_list))
+    return order_list
 
-# looping through the dataframe and conditionally checking for an SKU whilst providing error handling
-# The resulting list is added as a new column to the checked data frame
-# Essentially it's manual normalization with conditions
-print(type(order_list))
+
+json_file = "data.json"
+order_df = load_json(json_file)
 
 
 def fix_shippo_json(order_list: pd.DataFrame) -> pd.DataFrame:
     pd.set_option("display.max.rows", 15)
+    # looping through the dataframe and conditionally checking for an SKU whilst providing error handling
+    # The resulting list is added as a new column to the checked data frame
+    # Essentially it is manual normalization with conditions
     sku_list = []
     for index, row in order_list.iterrows():
         if len(row['line_items']) > 0:
@@ -49,23 +52,25 @@ def fix_shippo_json(order_list: pd.DataFrame) -> pd.DataFrame:
             sku_list.append(sku)
         else:
             sku_list.append('Empty')
+            # fills in the data as there were no SKUs at a certain time
 
     order_list["sku"] = sku_list
 
     # converting from string to date-time
     # doing it twice because there are two different formats involved as SHippo API changed
-    format_string = "%Y-%m-%dT%H:%M:%SZ"
+    # it will look for datetime twice--and then fill together so everything is fixed
     date1 = pd.to_datetime(order_list['created_at'], errors='coerce', format='%Y-%m-%dT%H:%M:%S.%fZ')
     date2 = pd.to_datetime(order_list['created_at'], errors='coerce', format='%Y-%m-%dT%H:%M:%SZ')
     order_list['created_at'] = date1.fillna(date2)
 
     # converting string to float for prices so they can be searched
+    # TODO not use float but also retain price accurately enough
     order_list['subtotal_price'] = order_list['subtotal_price'].astype(float)
     order_list['total_price'] = order_list['total_price'].astype(float)
     return order_list
 
 
-fix_shippo_json(order_list)
+fix_shippo_json(order_df)
 
 pd.set_option('display.max_rows', 100)
 date_from = '2021-12-01'
@@ -78,12 +83,12 @@ search = '45'  # case insensitive
 # The flag parameter is also used and re.I is passed to it, which means IGNORECASE.
 # https://www.geeksforgeeks.org/python-pandas-series-str-count/
 
-filtered_df = order_list.loc[
-    (order_list['created_at'] >= date_from)
-    & (order_list['created_at'] <= date_to)
-    & order_list['sku'].str.count(search, re.I)
-    & (order_list['subtotal_price'] >= price_from)
-    & (order_list['subtotal_price'] <= price_to)
+filtered_df = order_df.loc[
+    (order_df['created_at'] >= date_from)
+    & (order_df['created_at'] <= date_to)
+    & order_df['sku'].str.count(search, re.I)
+    & (order_df['subtotal_price'] >= price_from)
+    & (order_df['subtotal_price'] <= price_to)
     ]
 
 msg = (
