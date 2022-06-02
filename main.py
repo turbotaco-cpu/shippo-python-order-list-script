@@ -15,7 +15,6 @@ if __name__ == '__main__':
 
     # hacked it temporarily with max results--pagination is advisable
     json_filename = 'data.JSON'
-    token = 'shippo_test_11e5a116bb4d1769263755c5cad312a868c184d3'
     url = 'https://api.goshippo.com/orders?results=250'
 
     orders_df = get_shippo_json.get_shippo_json(token, url, json_filename, refresh_json)
