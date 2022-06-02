@@ -1,45 +1,8 @@
-# TODO wrap the requests and online api download into a function
-
-# import requests
-# #temporarily hacked it with max results of 250 for testing purposes.
-# token = "shippo_test_277121c5f998ea6f1c5402ca4644ead68662ee57"
-# url = 'https://api.goshippo.com/orders?results=250'
-# headers = {'Authorization': 'ShippoToken token'}
-# r = requests.get(url, headers=headers)
-# orders = r.json()
-# r.json()
-
-# import json
-# with open('data.json', 'w', encoding='utf-8') as f:
-#     json.dump(orders, f, ensure_ascii=False, indent=4)
-# #dumps json so we don't go to API every time
-
-# loads JSON from local file to avoid constant API requests
 import pandas as pd
 import json
 import re
 from typing import List
-
-
-# TODO fix typing as it's being used with Pandas DF and with nothing it doesn't work
-
-
-def load_json(file: str) -> pd.DataFrame:
-    f = open(file)
-    # returns JSON object as a dictionary and creates the orders variable
-    orders = json.load(f)
-
-    # this handles the object info--but not deeper into the tree such as line items
-    order_list = pd.json_normalize(
-        orders['results'],
-    )
-
-    print(type(order_list))
-    return order_list
-
-
-json_file = "data.json"
-order_df = load_json(json_file)
+import get_shippo_json
 
 
 def fix_shippo_json(order_list: pd.DataFrame) -> pd.DataFrame:
@@ -72,9 +35,6 @@ def fix_shippo_json(order_list: pd.DataFrame) -> pd.DataFrame:
     return order_list
 
 
-datatime_fixed_df = fix_shippo_json(order_df)
-
-
 def filter_orders(date_from: str,
                   date_to: str,
                   price_from: int,
@@ -105,11 +65,29 @@ def filter_orders(date_from: str,
     # filtered_df[['sku','subtotal_price', 'total_price', 'shop_app']]
 
 
-pd.set_option('display.max_rows', 100)
-date_from = '2021-12-01'
-date_to = '2021-12-31'
-price_from = 0
-price_to = 1300
-search = '45'  # case insensitive
+if __name__ == '__main__':
+    refresh_json = False
+    pd.set_option('display.max_rows', 100)
+    # Order search options:
+    date_from = '2021-12-01'
+    date_to = '2021-12-31'
+    price_from = 0
+    price_to = 1300
+    search = '45'  # case insensitive
 
-filter_orders(date_from, date_to, price_from, price_to, search, datatime_fixed_df)
+    # hacked it temporarily with max results--pagination is advisable
+    json_filename = 'data.JSON'
+    token = 'shippo_test_11e5a116bb4d1769263755c5cad312a868c184d3'
+    url = 'https://api.goshippo.com/orders?results=250'
+
+    orders = get_shippo_json.get_shippo_json(token, url, json_filename, refresh_json)
+
+    # this handles the object info--but not deeper into the tree such as line items
+    order_df = pd.json_normalize(
+        orders['results'],
+    )
+
+    print(type(order_df))
+
+    datatime_fixed_df = fix_shippo_json(order_df)
+    filter_orders(date_from, date_to, price_from, price_to, search, datatime_fixed_df)
