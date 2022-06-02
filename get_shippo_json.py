@@ -26,5 +26,3 @@ def get_shippo_json(token: str, url: str, json_filename: str,
             return orders
         except FileNotFoundError:
             print(f"The file {json_filename} cannot be found.")
-        # returns JSON object as a dictionary and creates the orders variable
-
