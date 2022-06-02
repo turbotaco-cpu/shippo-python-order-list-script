@@ -70,7 +70,7 @@ def fix_shippo_json(order_list: pd.DataFrame) -> pd.DataFrame:
     return order_list
 
 
-fix_shippo_json(order_df)
+datatime_fixed_df = fix_shippo_json(order_df)
 
 pd.set_option('display.max_rows', 100)
 date_from = '2021-12-01'
@@ -83,12 +83,12 @@ search = '45'  # case insensitive
 # The flag parameter is also used and re.I is passed to it, which means IGNORECASE.
 # https://www.geeksforgeeks.org/python-pandas-series-str-count/
 
-filtered_df = order_df.loc[
-    (order_df['created_at'] >= date_from)
-    & (order_df['created_at'] <= date_to)
-    & order_df['sku'].str.count(search, re.I)
-    & (order_df['subtotal_price'] >= price_from)
-    & (order_df['subtotal_price'] <= price_to)
+filtered_df = datatime_fixed_df.loc[
+    (datatime_fixed_df['created_at'] >= date_from)
+    & (datatime_fixed_df['created_at'] <= date_to)
+    & datatime_fixed_df['sku'].str.count(search, re.I)
+    & (datatime_fixed_df['subtotal_price'] >= price_from)
+    & (datatime_fixed_df['subtotal_price'] <= price_to)
     ]
 
 msg = (
