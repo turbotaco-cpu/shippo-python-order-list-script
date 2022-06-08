@@ -7,13 +7,13 @@ def get_shippo_json(token: str, url: str, json_filename: str,
                     refresh_json: bool) -> pd.DataFrame:
 
     if refresh_json:
-        # pull from REST api and create JSON file
+        # Pull from REST api
         headers = {'Authorization': 'ShippoToken ' + token}
         print(headers)
         r = requests.get(url, headers=headers)
         orders = r.json()
 
-        # Create JSON file so we don't hit API all the time
+        # Create JSON file
         with open(json_filename, 'w', encoding='utf-8') as f:
             json.dump(orders, f, ensure_ascii=False, indent=4)
             print(f"OK {json_filename} file saved")

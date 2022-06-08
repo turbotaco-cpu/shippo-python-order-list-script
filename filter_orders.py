@@ -7,14 +7,12 @@ def filter_orders(date_from: str,
                   price_to: int,
                   search: str,
                   datatime_fixed_df):
-    # now we can filter by date and add several conditions together with bools.
-    # The flag parameter is also used and re.I is passed to it, which means IGNORECASE.
-    # https://www.geeksforgeeks.org/python-pandas-series-str-count/
 
     filtered_df = datatime_fixed_df.loc[
         (datatime_fixed_df['created_at'] >= date_from)
         & (datatime_fixed_df['created_at'] <= date_to)
         & datatime_fixed_df['sku'].str.count(search, re.I)
+        # re.I is case-insensitive REGEX
         & (datatime_fixed_df['subtotal_price'] >= price_from)
         & (datatime_fixed_df['subtotal_price'] <= price_to)
         ]
@@ -28,4 +26,3 @@ def filter_orders(date_from: str,
     order_total = (len(filtered_df))
     print(f"\nSubtotal Total: ${subtotal_total}")
     print(f"Number of Orders: {order_total}")
-    # filtered_df[['sku','subtotal_price', 'total_price', 'shop_app']]
