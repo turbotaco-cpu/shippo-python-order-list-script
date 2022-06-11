@@ -1,8 +1,10 @@
+import os
 from typing import List
 import get_shippo_json
 import fix_shippo_json
 import filter_orders
-import os
+from dotenv import load_dotenv
+load_dotenv()
 
 
 if __name__ == '__main__':
@@ -14,10 +16,11 @@ if __name__ == '__main__':
     price_to = 1300
     search = '45'  # case insensitive
 
-    # TODO fix the enviroment variable and make it secure
     # Pagination suggested--hacked with max result = 250
+    # ToDO decide on method for pagination and implement it.
     json_filename = 'data.JSON'
-    token = "shippo-api-token"
+    # Get token from .env file
+    token = os.environ.get('TOKEN')
     url = 'https://api.goshippo.com/orders?results=250'
 
     orders_df = get_shippo_json.get_shippo_json(token, url, json_filename, refresh_json)

@@ -1,4 +1,5 @@
 import re
+import pandas as pd
 
 
 def filter_orders(date_from: str,
@@ -6,15 +7,15 @@ def filter_orders(date_from: str,
                   price_from: int,
                   price_to: int,
                   search: str,
-                  datatime_fixed_df):
+                  modified_df: pd.DataFrame):
 
-    filtered_df = datatime_fixed_df.loc[
-        (datatime_fixed_df['created_at'] >= date_from)
-        & (datatime_fixed_df['created_at'] <= date_to)
-        & datatime_fixed_df['sku'].str.count(search, re.I)
+    filtered_df = modified_df.loc[
+        (modified_df['created_at'] >= date_from)
+        & (modified_df['created_at'] <= date_to)
+        & modified_df['sku'].str.count(search, re.I)
         # re.I is case-insensitive REGEX
-        & (datatime_fixed_df['subtotal_price'] >= price_from)
-        & (datatime_fixed_df['subtotal_price'] <= price_to)
+        & (modified_df['subtotal_price'] >= price_from)
+        & (modified_df['subtotal_price'] <= price_to)
         ]
 
     msg = (
