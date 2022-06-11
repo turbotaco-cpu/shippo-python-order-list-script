@@ -5,4 +5,4 @@ price range, SKU, etc.
 Resulting data could be made into an order list to track all channels
 or push resulting data to a dashboard.
 
-Updated to work with the latest Shippo API as of 06/11/2922.
+Updated to work with the latest Shippo API as of 06/11/2022.
