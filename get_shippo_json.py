@@ -6,6 +6,7 @@ import requests
 def get_shippo_json(token: str, url: str, json_filename: str,
                     refresh_json: bool) -> pd.DataFrame:
 
+    global f
     if refresh_json:
         # Pull from REST api
         headers = {'Authorization': 'ShippoToken ' + token}
@@ -26,3 +27,5 @@ def get_shippo_json(token: str, url: str, json_filename: str,
             return orders
         except FileNotFoundError:
             print(f"The file {json_filename} cannot be found.")
+        finally:
+            f.close()

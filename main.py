@@ -7,11 +7,24 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+""" 
+TODO Have the JSON request reflect desired date range as per Shippo docs
+https://goshippo.com/docs/orders/#:~:text=You%20can%20retrieve%20an%20order,of%20our%20shopping%20cart%20integrations.
+
+Flow might want to be the following:
+- User decides if they want to see all orders or date ranged.
+
+- If date range is selected the query will only call what is needed.
+- If user requests all data then pagination is used
+
+- Regardless in both cases the date range of the initial query 
+"""
+
 if __name__ == '__main__':
-    refresh_json = True
+    refresh_json = False
     # Order search options:
-    date_from = '2021-12-01'
-    date_to = '2022-5-31'
+    date_from = '2022-1-01'
+    date_to = '2022-6-13'
     price_from = 0
     price_to = 1300
     search = '45'  # case insensitive
@@ -24,8 +37,6 @@ if __name__ == '__main__':
     url = 'https://api.goshippo.com/orders?results=250'
 
     orders_df = get_shippo_json.get_shippo_json(token, url, json_filename, refresh_json)
-
-    print(type(orders_df))
 
     datatime_fixed_df = fix_shippo_json.fix_shippo_json(orders_df)
     filter_orders.filter_orders(date_from, date_to, price_from, price_to, search, datatime_fixed_df)
