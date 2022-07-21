@@ -1,5 +1,4 @@
 import os
-from typing import List
 import get_shippo_json
 import fix_shippo_json
 import filter_orders
