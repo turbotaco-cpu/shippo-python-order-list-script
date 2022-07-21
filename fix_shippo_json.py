@@ -21,7 +21,7 @@ def fix_shippo_json(order_list_in: pd.DataFrame) -> pd.DataFrame:
     order_list["sku"] = sku_list
 
     # Converting from string to date-time using Pandas
-    date1 = pd.to_datetime(order_list['placed_at'], errors='raise', exact=False, infer_datetime_format=True)
+    date1 = pd.to_datetime(order_list['placed_at'], errors='raise', exact=False, infer_datetime_format=True, format='%Y-%m-%d %H:%M')
     order_list['created_at'] = date1
 
     # Converting string to float for prices so they can be searched
