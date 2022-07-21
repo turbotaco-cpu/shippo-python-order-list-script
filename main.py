@@ -4,8 +4,8 @@ import get_shippo_json
 import fix_shippo_json
 import filter_orders
 from dotenv import load_dotenv
-load_dotenv()
 
+load_dotenv()
 
 """ 
 TODO Have the JSON request reflect desired date range as per Shippo docs
@@ -20,23 +20,34 @@ Flow might want to be the following:
 - Regardless in both cases the date range of the initial query 
 """
 
-if __name__ == '__main__':
-    refresh_json = False
-    # Order search options:
-    date_from = '2022-1-01'
-    date_to = '2022-6-13'
-    price_from = 0
-    price_to = 1300
-    search = '45'  # case insensitive
 
+def query(search_query):
     # Pagination suggested--hacked with max result = 250
     # ToDO decide on method for pagination and implement it.
-    json_filename = 'data.JSON'
+
     # Get token from .env file
+    json_filename = 'data.JSON'
+    refresh_json = False
     token = os.environ.get('TOKEN')
     url = 'https://api.goshippo.com/orders?results=250'
 
+    #  Sourcing JSON and Creating Data Frame DF:
     orders_df = get_shippo_json.get_shippo_json(token, url, json_filename, refresh_json)
 
+    #  Fixing any datetime conflicts:
     datatime_fixed_df = fix_shippo_json.fix_shippo_json(orders_df)
-    filter_orders.filter_orders(date_from, date_to, price_from, price_to, search, datatime_fixed_df)
+
+    #  Filtering orders using search query options, prints results, and returns the filtered dataframe:
+    return filter_orders.filter_orders(search_query, datatime_fixed_df)
+
+
+if __name__ == '__main__':
+    # Order search options:
+    search_query = {
+        'date_from': '2022-1-01',
+        'date_to': '2022-7-07',
+        'price_from': 500,
+        'price_to': 2000,
+        'search': ''  # case insensitive
+    }
+    query(search_query)

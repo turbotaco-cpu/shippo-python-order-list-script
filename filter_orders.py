@@ -1,13 +1,12 @@
 import re
 import pandas as pd
+from operator import itemgetter
 
 
-def filter_orders(date_from: str,
-                  date_to: str,
-                  price_from: int,
-                  price_to: int,
-                  search: str,
-                  modified_df: pd.DataFrame):
+def filter_orders(search_query: dict, modified_df: pd.DataFrame):
+    #  Unpacking the search query dict which was passed in:
+    date_from, date_to, search, price_from, price_to = \
+        itemgetter('date_from', 'date_to', 'search', 'price_from', 'price_to')(search_query)
 
     filtered_df = modified_df.loc[
         (modified_df['created_at'] >= date_from)
@@ -27,3 +26,5 @@ def filter_orders(date_from: str,
     order_total = (len(filtered_df))
     print(f"\nSubtotal Total: ${subtotal_total}")
     print(f"Number of Orders: {order_total}")
+
+    return filtered_df
